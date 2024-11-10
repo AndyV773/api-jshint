@@ -1,15 +1,18 @@
-const API_KEY = '';
+import {
+    API_KEY
+} from api.js
+
 const API_URL = 'https://www.googleapis.com/youtube/v3/search';
 const SNIP = 'part=snippet';
 const MAX_RESULTS = 'maxResults=50';
 const TYPE = 'type=video';
 const DURATION = 'videoDuration=short';
 const CHANNEL = 'channelId=';
-const USER = 'forUsername=colin+furze';
+const USER = 'forUsername=colin+furze';  // ${CHANNEL}&${USER}&
 const PAGE = 'pageToken='; // CDIQAA
 
 async function getStatues(event) {
-    const queryString = `${API_URL}?${SNIP}&${MAX_RESULTS}&${TYPE}&${DURATION}&${CHANNEL}&${USER}&${PAGE}&key=${API_KEY}`;
+    const queryString = `${API_URL}?${SNIP}&${MAX_RESULTS}&${TYPE}&${DURATION}&${PAGE}&key=${API_KEY}`;
 
     const response = await fetch(queryString);
 
