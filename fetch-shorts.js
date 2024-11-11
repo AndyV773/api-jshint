@@ -1,6 +1,4 @@
-import {
-    API_KEY
-} from api.js
+const API_KEY = require('./api.js');
 
 const API_URL = 'https://www.googleapis.com/youtube/v3/search';
 const SNIP = 'part=snippet';
@@ -9,59 +7,49 @@ const TYPE = 'type=video';
 const DURATION = 'videoDuration=short';
 const CHANNEL = 'channelId=';
 const USER = 'forUsername=colin+furze';  // ${CHANNEL}&${USER}&
-const PAGE = 'pageToken='; // CDIQAA
+let PAGE = ['CDIQAA', 'CGQQAA', 'CJYBEAA', 'CMgBEAA', 'CPoBEAA', 'CKwCEAA', 'CN4CEAA', 'CJADEAA', 'CMIDEAA', 'CPQDEAA']; // CDIQAA CGQQAA CJYBEAA CMgBEAA CPoBEAA CKwCEAA CN4CEAA CJADEAA CMIDEAA CPQDEAA
 
-async function getStatues(event) {
-    const queryString = `${API_URL}?${SNIP}&${MAX_RESULTS}&${TYPE}&${DURATION}&${PAGE}&key=${API_KEY}`;
+let idArray = [];
+let pageArr = [];
 
-    const response = await fetch(queryString);
 
-    const data = await response.json();
+async function getStatus(event) {
+    for (let i = 0; i < 10; i++) {
+        const queryString = `${API_URL}?${SNIP}&${MAX_RESULTS}&${TYPE}&${DURATION}&pageToken=${PAGE[i]}&key=${API_KEY}`;
 
-    if (response.ok) {
-        console.log(data.nextPageToken);
-        console.log(data.regionCode);
-        console.log(data.pageInfo);
-        processId(data);
-    } else {
-        throw new Error(data.error);
+        const response = await fetch(queryString);
+
+        const data = await response.json();
+
+        if (response.ok) {
+            console.log('In getStatus:', data.nextPageToken);
+            processId(data, i);
+        } else {
+            if (data.error) {
+                console.error("API Error:", JSON.stringify(data.error, null, 2)); // Log the error object as a JSON string
+                throw new Error("An error occurred while fetching data from the API");
+            }
+            throw new Error(data.error);
+        }
     }
+
+    console.log(pageArr);
+    // Save pageArr to data.json
+    // require('fs').writeFileSync('data.json', JSON.stringify(pageArr), 'utf8');
+
+    console.log("Array has been saved to data.json");
 
 }
 
-function processId(data) {
-
-    let idArray = [];
+function processId(data, i) {
+    idArray.push([]);
 
     for (let item of data.items) {
-        idArray.push(item.id.videoId);
+        idArray[i].push(item.id.videoId);
     }
 
-    console.log(idArray);
+    pageArr.push({[data.nextPageToken] : [idArray[i]]});
+
 }
 
-// Function to save array to a file
-function saveToFile(ids) {
-    const filePath = 'shortsIds.json';
-    const jsonContent = JSON.stringify(ids, null, 2);
-
-    fs.writeFile(filePath, jsonContent, 'utf8', (err) => {
-        if (err) {
-            console.error("Error writing to file:", err);
-        } else {
-            console.log(`Shorts IDs successfully saved to ${filePath}`);
-        }
-    });
-}
-
-function displayStatus(data) {
-
-    let heading = "Shorts ID's";
-    let results = `${data}`;
-
-
-    document.getElementById("heading").innerText = heading;
-    document.getElementById("shorts").innerHTML = results;
-}
-
-getStatues();
+getStatus();
